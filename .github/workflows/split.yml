@@ -1,0 +1,52 @@
+name: Split
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+
+jobs:
+  split:
+    name: Split
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.INTEGRATOR_APP_ID }}
+          private-key: ${{ secrets.INTEGRATOR_APP_SECRET }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: write
+          permission-statuses: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Split and push each package
+        run: |
+          # repository list
+          repos=(
+            "awesome-lib:src/Fourier/AwesomeLib"
+            "sample-lib:src/Fourier/SimpleLib"
+          )
+
+          for entry in "${repos[@]}"; do
+            repo="${entry%%:*}"
+            path="${entry#*:}"
+
+            echo "Processing $repo at path $path"
+
+            # gitのリモートにモジュールのgitリポジトリのパスを追加
+            git remote add "$repo" "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository_owner }}/${repo}.git"
+            # splitsh-liteを使用して変更履歴を分離しSHA1を作成
+            SHA1=$(bin/splitsh-lite --prefix="$path")
+            # 分離した変更履歴をモジュールのgitリポジトリにpushする
+            git push "$repo" "$SHA1:${{ github.ref }}" -f
+          done

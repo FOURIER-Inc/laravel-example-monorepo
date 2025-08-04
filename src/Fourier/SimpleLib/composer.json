@@ -1,0 +1,12 @@
+{
+  "name": "fourier/simple-lib",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Fourier\\SimpleLib\\": ""
+    }
+  },
+  "require": {
+    "illuminate/support": "^12.20"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "fourier/awesome-lib",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Fourier\\AwesomeLib\\": ""
+    }
+  },
+  "require": {
+    "illuminate/support": "^12.20"
+  }
+}
